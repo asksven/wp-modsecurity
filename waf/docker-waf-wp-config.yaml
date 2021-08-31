@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: docker-waf-wp-config
+data:
+  RESPONSE-999-EXCLUSION-RULES-AFTER-CRS.conf: |
+    # Exceptions for wordpress

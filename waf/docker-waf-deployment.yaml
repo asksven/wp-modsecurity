@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: docker-waf
+  name: docker-waf
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: docker-waf
+  template:
+    metadata:
+      labels:
+        app: docker-waf
+    spec:
+      containers:
+      - image: asksven/docker-alpine-nginx-modsec:5-clamav
+        env:
+          - name: CLAMD_PORT
+            value: "3310"      
+          - name: CLAMD_SERVER
+            value: "docker-clamav" 
+        imagePullPolicy: Always
+        name: docker-waf
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        volumeMounts:
+        # where modsec-confs are being put
+        - name: nginx-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+        - name: modsecurity-config
+          mountPath: /etc/nginx/modsec/modsecurity.conf
+          subPath: modsecurity.conf
+        - name: crs-config
+          mountPath: /usr/local/owasp-modsecurity-crs/crs-setup.conf
+          subPath: crs-setup.conf
+        - name: modsec-includes
+          mountPath: /etc/nginx/modsec/main.conf
+          subPath: main.conf
+        - name: wp-config
+          mountPath: /usr/local/owasp-modsecurity-crs/rules/RESPONSE-999-EXCLUSION-RULES-AFTER-CRS.conf
+          subPath: RESPONSE-999-EXCLUSION-RULES-AFTER-CRS.conf
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: docker-waf-nginx-config
+      - name: modsecurity-config
+        configMap:
+          name: docker-waf-modsecurity-config
+      - name: crs-config
+        configMap:
+          name: docker-waf-crs-config
+      - name: modsec-includes
+        configMap:
+          name: docker-waf-modsec-includes
+      - name: wp-config
+        configMap:
+          name: docker-waf-wp-config

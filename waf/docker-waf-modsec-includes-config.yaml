@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: docker-waf-modsec-includes
+data:
+  main.conf: |
+    # we don't do any WAF stuff here, it's all about clamav (fow now)
+    Include "/etc/nginx/modsec/modsecurity.conf"
+    Include "/etc/nginx/modsec/clamav.conf"
+    

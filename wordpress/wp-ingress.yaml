@@ -1,0 +1,32 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: wordpress
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    ingress.kubernetes.io/force-hsts: "true"               # ASVS 14.4.5, CWE 523
+    ingress.kubernetes.io/hsts-max-age: "15724800"         # ASVS 14.4.5, CWE 523
+    ingress.kubernetes.io/hsts-include-subdomains: "true"  # ASVS 14.4.5, CWE 523
+    ingress.kubernetes.io/browser-xss-filter: "true"
+    ingress.kubernetes.io/frame-deny: "true"               # ASVS 14.4.7, CWE 346
+    ingress.kubernetes.io/content-type-nosniff: "true"     # ASVS 14.4.4, CWE 116
+    ingress.kubernetes.io/referrer-policy: "no-referrer"   # ASVS 14.4.6, CWE 116
+    # ingress.kubernetes.io/custom-browser-xss-value: VALUE
+    # ingress.kubernetes.io/custom-frame-options-value: VALUE
+    # ingress.kubernetes.io/content-security-policy: VALUE
+    # ingress.kubernetes.io/hsts-preload: "true"
+    ## END Security Header
+
+    ingress.kubernetes.io/custom-response-headers: |       # ASVS 14.3.3, CWE 200
+      Server: Incognito    
+spec:
+  rules:
+  - host: $HOST
+    http:
+      paths:
+      - backend:
+#          serviceName: wordpress
+#          servicePort: 80
+          serviceName: docker-waf
+          servicePort: 8080          
+        path: /

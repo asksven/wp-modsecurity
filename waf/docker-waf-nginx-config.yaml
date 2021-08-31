@@ -1,0 +1,78 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: docker-waf-nginx-config
+data:
+  nginx.conf: |
+    user  nginx;
+    worker_processes auto;
+
+    load_module modules/ngx_http_modsecurity_module.so;
+
+    error_log  /var/log/nginx/error.log info; # rquired if we want to see modsecurity blocked requests when audit-log is off
+    pid        /var/run/nginx.pid;
+
+    events {
+        worker_connections  2048;
+        multi_accept on;
+    }
+
+    http {
+        include mime.types;
+        default_type  application/octet-stream;
+
+        log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                          '$status $body_bytes_sent "$http_referer" '
+                          '"$http_user_agent" "$http_x_forwarded_for"';
+
+        access_log /var/log/nginx/access.log  main;  # off;
+
+        sendfile                    on;
+        keepalive_timeout           5;
+        autoindex                   off;
+        port_in_redirect            off;
+        tcp_nopush                  on;
+        tcp_nodelay                 on;
+        client_max_body_size        2048m;
+        client_body_buffer_size     128k;
+        client_header_buffer_size   16k;
+        large_client_header_buffers 4 16k;
+        fastcgi_buffer_size         16k;
+        fastcgi_buffers             4 16k;
+        server_tokens               off;
+        proxy_ignore_client_abort   on;
+
+
+        open_file_cache             max=35000 inactive=30s;
+        open_file_cache_valid       30s;
+        open_file_cache_min_uses    2;
+
+        gzip                on;
+        gzip_vary           on;
+        gzip_proxied        any;
+        gzip_types          application/javascript application/x-javascript application/rss+xml text/javascript text/css text/plain image/x-icon image/svg+xml;
+        gzip_buffers        4 16k;
+        gzip_comp_level     6;
+        gzip_min_length     256;
+
+        server {
+            listen 80 default; ## listen for ipv4; this line is default and implied
+            listen [::]:80 default ipv6only=on; ## listen for ipv6
+
+            server_name _;
+
+            modsecurity on;
+            modsecurity_rules_file /etc/nginx/modsec/main.conf;
+
+            location / {
+                proxy_pass http://wordpress:80;
+                proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
+                proxy_redirect off;
+                proxy_buffering off;
+                proxy_force_ranges on;
+                proxy_set_header        Host            $host;
+                proxy_set_header        X-Real-IP       $remote_addr;
+                proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;   
+            }
+        }
+    }    
