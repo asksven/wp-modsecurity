@@ -1,3 +1,0 @@
-export NAMESPACE=wp-modsecurity
-export HOST=<your-hostname>
-export STORAGECLASS=openebs-cstor
