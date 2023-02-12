@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: docker-clammit
+  name: docker-clammit
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: docker-clammit
+  template:
+    metadata:
+      labels:
+        app: docker-clammit
+    spec:
+      containers:
+      - image: maxsivkov/clammit
+        imagePullPolicy: Always
+        name: docker-clammit
+        env:
+        - name: CLAMMIT_LISTEN
+          value: ":8438"
+        - name: CLAMMIT_CLAMD_URL
+          value: "tcp://docker-clamav:3310"       
+        - name: CLAMMIT_TEST_PAGES
+          value: "true"
+        - name: CLAMMIT_DEBUG
+          value: "true"
+        - name: CLAMMIT_STATUS_CODE
+          value: "418"
+        - name: CLAMMIT_MEMORY_THRESHOLD
+          value: "10485760"
+        - name: CLAMMIT_THREADS
+          value: "2"           
+        - name: CLAMMIT_APP_URL
+          value: "http://wordpress:80"           
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: docker-clammit
+  name: docker-clammit
+spec:
+  ports:
+  - name: socket
+    port: 8438
+    protocol: TCP
+    targetPort: 8438
+  selector:
+    app: docker-clammit
+    

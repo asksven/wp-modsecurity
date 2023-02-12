@@ -1,0 +1,7 @@
+export NAMESPACE=wp-antivirus
+export HOST=wp.<some-domain>
+export STORAGECLASS=<your-storageclass>
+export INGRESSCLASS=<your-ingressclass>
+export PASSWORD="<some-password>"
+export WP_USER="<some-user>"
+export WP_PASSWORD="<some-password-set-at-wp-setup>"
